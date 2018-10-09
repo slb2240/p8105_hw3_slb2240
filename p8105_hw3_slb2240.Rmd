@@ -1,0 +1,95 @@
+---
+title: "p8105_hw3_slb2240"
+author: "Samantha Brown"
+date: "10/7/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cellranger)
+library(devtools)
+```
+
+## Problem 1
+
+Import and clean data:
+```{r}
+install_github("p8105/p8105.datasets")
+library(p8105.datasets)
+data(brfss_smart2010)
+
+brfss_smart2010 = janitor::clean_names(brfss_smart2010) %>% 
+  filter(topic == "Overall Health") %>% 
+  mutate(response = as.factor(response))
+```
+
+**In 2002, which states were observed at 7 locations?**
+
+```{r}
+brfss_2002 = filter(brfss_smart2010, year == "2002") %>% 
+  distinct(locationabbr, locationdesc) %>% 
+  count(locationabbr) %>% 
+  filter(n == 7)
+
+brfss_2002
+```
+
+Connecticut, Florida, and North Carolina were observed at 7 locations.
+
+**Make a “spaghetti plot” that shows the number of observations in each state from 2002 to 2010.**
+
+geom_line(), with  group_by and summarize() commands for my plot. 
+
+
+**Make a table showing, for the years 2002, 2006, and 2010, the mean and standard deviation of the proportion of “Excellent” responses across locations in NY State.**
+
+```{r}
+brfss_NY = filter(brfss_smart2010, locationabbr == "NY") %>% 
+  spread(key = response, value = data_value)
+
+brfss_NY_excellent_prop = janitor::clean_names(brfss_NY) %>% 
+  mutate(prop_excellent = excellent/sample_size) %>%
+  group_by(year) %>% 
+  summarize(mean_excellent = round(mean(prop_excellent, na.rm = TRUE), digits = 3),
+            sd_excellent = round(sd(prop_excellent, na.rm = TRUE), digits = 3)) %>% 
+  filter(year == c("2002", "2006", "2010"))
+
+brfss_NY_excellent_prop
+
+```
+
+**For each year and state, compute the average proportion in each response category (taking the average across locations in a state). Make a five-panel plot that shows, for each response category separately, the distribution of these state-level averages over time.**
+
+```{r}
+brfss_location_state_prop = brfss_smart2010 %>% 
+  spread(key = response, value = data_value) %>%
+  janitor::clean_names() %>%
+  group_by(year, locationabbr) %>%
+  summarize(prop_excellent = round(mean(excellent/sample_size, na.rm = TRUE), digits = 2),
+            prop_very_good = round(mean(very_good/sample_size, na.rm = TRUE), digits = 2),
+            prop_fair = round(mean(fair/sample_size, na.rm = TRUE), digits = 2),
+            prop_good = round(mean(good/sample_size, na.rm = TRUE), digits = 2),
+            prop_poor = round(mean(poor/sample_size, na.rm = TRUE), digits = 2)) %>% 
+  rename(state = locationabbr) %>% 
+  gather(key = "response", value = "proportion_response", prop_excellent:prop_poor)
+  
+  
+ggplot(brfss_location_state_prop, aes(x = state, y = proportion_response, color = year)) +
+  geom_point(alpha = 0.2) +
+  facet_grid(~response) +
+  scale_color_viridis()
+
+```
+? How are we supposed to organize plots?
+
+
+## Problem 2
+
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations.
+
+
+
+
+
