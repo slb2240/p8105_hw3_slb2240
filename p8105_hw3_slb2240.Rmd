@@ -157,11 +157,15 @@ popular_items
 **Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).**
 
 ```{r}
+library(lubridate)
+
 apples_coffee_dow = instacart %>% 
   filter(product_name == c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
   select(product_name, order_dow, order_hour_of_day) %>% 
   group_by(product_name, order_dow) %>%
   summarize(round(mean(order_hour_of_day), digits = 0)) 
+
+class(apples_coffee_dow$order_dow)
 
 clean_apples_coffee = apples_coffee_dow %>% 
   rename(average_hour = "round(mean(order_hour_of_day), digits = 0)", day_of_week = order_dow) %>% 
@@ -212,11 +216,38 @@ summary(as.numeric(ny_noaa$temp_min))
 ^^ Comment on summary statistics
 
 
-
 **Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?**
 
+```{r}
+ny_noaa_dates = ny_noaa %>% 
+  separate(date, c("year", "month", "day"), by = "/")
+  View()
+```
 
-**Make a two-panel plot showing the average temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?**
+
+
+**Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?**
+
+```{r}
+library(hexbin)
+
+noaa_ny_jan_july = ny_noaa_dates %>% 
+  filter(month == c("01", "07")) %>% 
+  filter(temp_max != "NA") %>% 
+  select(id, month, temp_max) %>% 
+  group_by(id, month) %>% 
+  summarize(mean_temp = round(mean(as.numeric(temp_max)), digits = 2)) %>% 
+  View()
+  
+ggplot(noaa_ny_jan_july, aes(x = id, y = mean_temp)) +
+  geom_point(aes(color = month)) +
+  geom_smooth(se = FALSE) +
+  xlab("Weather Station ID") +
+  ylab("Average Mean Temp, in tenths of degrees C")
+
+
+```
+
 
 
 **Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.**
