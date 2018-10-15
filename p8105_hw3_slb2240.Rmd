@@ -97,7 +97,8 @@ ggplot(brfss_location_state_prop, aes(x = year, y = proportion_response, color =
   geom_line() +
   facet_grid(~response) +
   scale_color_viridis(name = "State",
-    discrete = TRUE)
+    discrete = TRUE) +
+  theme(axis.text.x = element_text(angle = 45))
 ```
 
 ## Problem 2
@@ -181,14 +182,18 @@ most_freq_aisle = instacart %>%
 no_items_by_aisle = instacart %>%
   select(aisle, add_to_cart_order) %>% 
   group_by(aisle) %>% 
-  summarize(n_items = sum(add_to_cart_order))
+  summarize(n_items = log(sum(add_to_cart_order)))
 
 ggplot(no_items_by_aisle, aes(x = n_items, y = aisle)) +
   geom_point() +
   labs(
-    title = "Number of Items Ordered in Each Aisle"
-  )
+    title = "log(Number of Items Ordered), by Each Aisle",
+    xlab = "log(number of items"
+  ) +
+  theme(axis.text.y = element_text(size = 5))
 ```
+
+axis.text.y = element_text(size = 7)
 
 **Make a table showing the most popular item in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits.”**
 
